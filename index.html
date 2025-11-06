@@ -1,0 +1,470 @@
+import React, { useState, useEffect, useCallback } from 'react';
+import { Wallet, Users, ListTodo, Zap, Trophy, Calendar, Gift, Youtube, DollarSign, Bitcoin, CreditCard, ArrowRight } from 'lucide-react';
+
+const TapCoinApp = () => {
+  const [activeTab, setActiveTab] = useState('tap');
+  const [points, setPoints] = useState(0);
+  const [energy, setEnergy] = useState(100);
+  const [tapAnimation, setTapAnimation] = useState(false);
+  const [floatingPoints, setFloatingPoints] = useState([]);
+  const [userName, setUserName] = useState('User');
+  const [joiningDate, setJoiningDate] = useState('');
+  const [referrals, setReferrals] = useState(0);
+  const [tasks, setTasks] = useState([]);
+  const [withdrawHistory, setWithdrawHistory] = useState([]);
+
+  // Initialize data from memory
+  useEffect(() => {
+    const savedData = {
+      points: 0,
+      energy: 100,
+      userName: 'TapMaster',
+      joiningDate: new Date().toLocaleDateString(),
+      referrals: 5,
+      tasks: [
+        { id: 1, title: 'Watch: Crypto Trading Basics', videoId: 'dQw4w9WgXcQ', reward: 1000, completed: false },
+        { id: 2, title: 'Watch: Blockchain Technology', videoId: '6avJHaC3C2U', reward: 1000, completed: false },
+        { id: 3, title: 'Watch: Bitcoin Explained', videoId: 'Gc2en3nHxA4', reward: 1000, completed: false },
+        { id: 4, title: 'Watch: NFT Guide', videoId: 'FufgOHRzv4c', reward: 1000, completed: false },
+        { id: 5, title: 'Watch: DeFi Overview', videoId: 'k9HYC0EJU6E', reward: 1000, completed: false },
+        { id: 6, title: 'Watch: Web3 Future', videoId: 'wHTcrmhskto', reward: 1000, completed: false }
+      ],
+      withdrawHistory: []
+    };
+
+    setPoints(savedData.points);
+    setEnergy(savedData.energy);
+    setUserName(savedData.userName);
+    setJoiningDate(savedData.joiningDate);
+    setReferrals(savedData.referrals);
+    setTasks(savedData.tasks);
+    setWithdrawHistory(savedData.withdrawHistory);
+  }, []);
+
+  // Save data to memory whenever it changes
+  useEffect(() => {
+    const dataToSave = {
+      points,
+      energy,
+      userName,
+      joiningDate,
+      referrals,
+      tasks,
+      withdrawHistory
+    };
+    // Data is kept in memory during the session
+  }, [points, energy, userName, joiningDate, referrals, tasks, withdrawHistory]);
+
+  // Energy regeneration
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setEnergy(prev => Math.min(100, prev + 1));
+    }, 2000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleTap = useCallback((e) => {
+    if (energy > 0) {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      
+      setPoints(prev => prev + 1);
+      setEnergy(prev => Math.max(0, prev - 1));
+      setTapAnimation(true);
+      
+      const id = Date.now();
+      setFloatingPoints(prev => [...prev, { id, x, y, value: '+1' }]);
+      
+      setTimeout(() => {
+        setFloatingPoints(prev => prev.filter(fp => fp.id !== id));
+      }, 1000);
+      
+      setTimeout(() => setTapAnimation(false), 100);
+    }
+  }, [energy]);
+
+  const completeTask = (taskId) => {
+    const task = tasks.find(t => t.id === taskId);
+    if (task && !task.completed) {
+      setTasks(prev => prev.map(t => 
+        t.id === taskId ? { ...t, completed: true } : t
+      ));
+      setPoints(prev => prev + task.reward);
+    }
+  };
+
+  const handleWithdraw = (method, amount) => {
+    if (points >= amount) {
+      setPoints(prev => prev - amount);
+      const newWithdraw = {
+        id: Date.now(),
+        method,
+        amount,
+        date: new Date().toLocaleDateString(),
+        status: 'Pending'
+      };
+      setWithdrawHistory(prev => [...prev, newWithdraw]);
+      alert(`Withdrawal of ${amount} points via ${method} initiated!`);
+    } else {
+      alert('Insufficient points!');
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-purple-900 via-purple-800 to-indigo-900 text-white">
+      {/* Header */}
+      <div className="p-4 flex justify-between items-center bg-black bg-opacity-30 backdrop-blur-sm">
+        <div className="flex items-center gap-2">
+          <Trophy className="text-yellow-400" size={24} />
+          <span className="text-xl font-bold">TapCoin</span>
+        </div>
+        <div className="flex items-center gap-2 bg-purple-700 px-4 py-2 rounded-full">
+          <Zap className="text-yellow-300" size={20} />
+          <span className="font-bold text-lg">{points.toLocaleString()}</span>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="pb-20" style={{ minHeight: 'calc(100vh - 140px)' }}>
+        {/* Tap Section */}
+        {activeTab === 'tap' && (
+          <div className="flex flex-col items-center justify-center p-6">
+            <div className="mb-6 text-center">
+              <h2 className="text-3xl font-bold mb-2">Tap to Earn!</h2>
+              <p className="text-purple-200">Tap the Black Panther</p>
+            </div>
+
+            {/* Tap Area */}
+            <div className="relative mb-8">
+              <div
+                onClick={handleTap}
+                className={`relative cursor-pointer transition-transform ${
+                  tapAnimation ? 'scale-95' : 'scale-100'
+                }`}
+                style={{ width: '280px', height: '280px' }}
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full blur-2xl opacity-50 animate-pulse"></div>
+                <div className="relative w-full h-full bg-gradient-to-br from-gray-800 to-black rounded-full flex items-center justify-center border-4 border-purple-400 shadow-2xl">
+                  <div className="text-center">
+                    <div className="text-6xl mb-2">🐾</div>
+                    <div className="text-2xl font-bold">Black Panther</div>
+                  </div>
+                </div>
+              </div>
+              
+              {floatingPoints.map(fp => (
+                <div
+                  key={fp.id}
+                  className="absolute text-yellow-300 font-bold text-2xl pointer-events-none animate-float"
+                  style={{
+                    left: fp.x,
+                    top: fp.y,
+                    animation: 'float 1s ease-out forwards'
+                  }}
+                >
+                  {fp.value}
+                </div>
+              ))}
+            </div>
+
+            {/* Energy Bar */}
+            <div className="w-full max-w-md">
+              <div className="flex justify-between mb-2">
+                <span className="text-sm flex items-center gap-1">
+                  <Zap size={16} className="text-yellow-300" />
+                  Energy
+                </span>
+                <span className="text-sm font-bold">{energy}/100</span>
+              </div>
+              <div className="w-full bg-gray-700 rounded-full h-4 overflow-hidden">
+                <div
+                  className="bg-gradient-to-r from-yellow-400 to-orange-500 h-full transition-all duration-300 rounded-full"
+                  style={{ width: `${energy}%` }}
+                ></div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Profile Section */}
+        {activeTab === 'profile' && (
+          <div className="p-6">
+            <div className="bg-black bg-opacity-40 rounded-3xl p-6 backdrop-blur-sm">
+              <div className="text-center mb-6">
+                <div className="w-24 h-24 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full mx-auto mb-4 flex items-center justify-center text-4xl">
+                  👤
+                </div>
+                <h2 className="text-2xl font-bold">{userName}</h2>
+              </div>
+
+              <div className="space-y-4">
+                <div className="bg-purple-800 bg-opacity-50 rounded-2xl p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Calendar className="text-purple-300" size={24} />
+                    <div>
+                      <p className="text-sm text-purple-200">Joined</p>
+                      <p className="font-bold">{joiningDate}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-purple-800 bg-opacity-50 rounded-2xl p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Zap className="text-yellow-300" size={24} />
+                    <div>
+                      <p className="text-sm text-purple-200">Total Points</p>
+                      <p className="font-bold text-xl">{points.toLocaleString()}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-purple-800 bg-opacity-50 rounded-2xl p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Users className="text-blue-300" size={24} />
+                    <div>
+                      <p className="text-sm text-purple-200">Referrals</p>
+                      <p className="font-bold text-xl">{referrals}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl p-4 mt-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm mb-1">Referral Code</p>
+                      <p className="font-mono font-bold text-lg">TAPCOIN{Math.floor(Math.random() * 10000)}</p>
+                    </div>
+                    <Gift size={32} />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Tasks Section */}
+        {activeTab === 'tasks' && (
+          <div className="p-6">
+            <h2 className="text-2xl font-bold mb-6">Complete Tasks</h2>
+            <div className="space-y-4">
+              {tasks.map(task => (
+                <div
+                  key={task.id}
+                  className={`bg-black bg-opacity-40 rounded-2xl p-4 backdrop-blur-sm ${
+                    task.completed ? 'opacity-60' : ''
+                  }`}
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="bg-red-600 rounded-xl p-3 flex-shrink-0">
+                      <Youtube size={24} />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-bold mb-1">{task.title}</h3>
+                      <p className="text-sm text-purple-200 mb-3">
+                        Reward: +{task.reward} points
+                      </p>
+                      {!task.completed ? (
+                        <button
+                          onClick={() => {
+                            window.open(`https://www.youtube.com/watch?v=${task.videoId}`, '_blank');
+                            setTimeout(() => completeTask(task.id), 3000);
+                          }}
+                          className="bg-gradient-to-r from-purple-600 to-pink-600 px-4 py-2 rounded-lg font-bold text-sm hover:opacity-90 transition-opacity flex items-center gap-2"
+                        >
+                          Watch Now <ArrowRight size={16} />
+                        </button>
+                      ) : (
+                        <div className="text-green-400 font-bold flex items-center gap-2">
+                          ✓ Completed
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Withdraw Section */}
+        {activeTab === 'withdraw' && (
+          <div className="p-6">
+            <h2 className="text-2xl font-bold mb-2">Withdraw Points</h2>
+            <p className="text-purple-200 mb-6">Available: {points.toLocaleString()} points</p>
+
+            <div className="space-y-4 mb-8">
+              <WithdrawOption
+                icon={<CreditCard size={24} />}
+                title="PayPal"
+                description="Instant transfer to PayPal"
+                minAmount={10000}
+                points={points}
+                onWithdraw={(amount) => handleWithdraw('PayPal', amount)}
+              />
+              <WithdrawOption
+                icon={<Bitcoin size={24} />}
+                title="Bitcoin"
+                description="Transfer to BTC wallet"
+                minAmount={50000}
+                points={points}
+                onWithdraw={(amount) => handleWithdraw('Bitcoin', amount)}
+              />
+              <WithdrawOption
+                icon={<DollarSign size={24} />}
+                title="Wire Transfer"
+                description="Direct bank transfer"
+                minAmount={100000}
+                points={points}
+                onWithdraw={(amount) => handleWithdraw('Wire Transfer', amount)}
+              />
+            </div>
+
+            {withdrawHistory.length > 0 && (
+              <div>
+                <h3 className="text-xl font-bold mb-4">Withdrawal History</h3>
+                <div className="space-y-3">
+                  {withdrawHistory.slice(-5).reverse().map(w => (
+                    <div key={w.id} className="bg-black bg-opacity-40 rounded-xl p-4 backdrop-blur-sm">
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <p className="font-bold">{w.method}</p>
+                          <p className="text-sm text-purple-200">{w.date}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-bold">{w.amount.toLocaleString()} pts</p>
+                          <p className="text-sm text-yellow-400">{w.status}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Bottom Navigation */}
+      <div className="fixed bottom-0 left-0 right-0 bg-black bg-opacity-80 backdrop-blur-md border-t border-purple-700">
+        <div className="flex justify-around items-center h-20">
+          <NavButton
+            icon={<Users size={24} />}
+            label="Profile"
+            active={activeTab === 'profile'}
+            onClick={() => setActiveTab('profile')}
+          />
+          <NavButton
+            icon={<Zap size={24} />}
+            label="Tap"
+            active={activeTab === 'tap'}
+            onClick={() => setActiveTab('tap')}
+          />
+          <NavButton
+            icon={<ListTodo size={24} />}
+            label="Tasks"
+            active={activeTab === 'tasks'}
+            onClick={() => setActiveTab('tasks')}
+          />
+          <NavButton
+            icon={<Wallet size={24} />}
+            label="Withdraw"
+            active={activeTab === 'withdraw'}
+            onClick={() => setActiveTab('withdraw')}
+          />
+        </div>
+      </div>
+
+      <style jsx>{`
+        @keyframes float {
+          0% {
+            opacity: 1;
+            transform: translateY(0);
+          }
+          100% {
+            opacity: 0;
+            transform: translateY(-50px);
+          }
+        }
+      `}</style>
+    </div>
+  );
+};
+
+const NavButton = ({ icon, label, active, onClick }) => (
+  <button
+    onClick={onClick}
+    className={`flex flex-col items-center justify-center gap-1 px-4 py-2 transition-colors ${
+      active ? 'text-purple-400' : 'text-gray-400'
+    }`}
+  >
+    {icon}
+    <span className="text-xs font-medium">{label}</span>
+  </button>
+);
+
+const WithdrawOption = ({ icon, title, description, minAmount, points, onWithdraw }) => {
+  const [amount, setAmount] = useState('');
+  const [showInput, setShowInput] = useState(false);
+
+  const handleSubmit = () => {
+    const numAmount = parseInt(amount);
+    if (numAmount >= minAmount) {
+      onWithdraw(numAmount);
+      setAmount('');
+      setShowInput(false);
+    } else {
+      alert(`Minimum withdrawal: ${minAmount} points`);
+    }
+  };
+
+  return (
+    <div className="bg-black bg-opacity-40 rounded-2xl p-4 backdrop-blur-sm">
+      <div className="flex items-center gap-4 mb-3">
+        <div className="bg-purple-700 rounded-xl p-3">
+          {icon}
+        </div>
+        <div className="flex-1">
+          <h3 className="font-bold">{title}</h3>
+          <p className="text-sm text-purple-200">{description}</p>
+          <p className="text-xs text-gray-400 mt-1">Min: {minAmount.toLocaleString()} pts</p>
+        </div>
+      </div>
+      
+      {!showInput ? (
+        <button
+          onClick={() => setShowInput(true)}
+          className="w-full bg-gradient-to-r from-purple-600 to-pink-600 px-4 py-2 rounded-lg font-bold hover:opacity-90 transition-opacity"
+        >
+          Withdraw
+        </button>
+      ) : (
+        <div className="space-y-2">
+          <input
+            type="number"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            placeholder="Enter amount"
+            className="w-full bg-purple-900 bg-opacity-50 rounded-lg px-4 py-2 outline-none focus:ring-2 focus:ring-purple-500"
+          />
+          <div className="flex gap-2">
+            <button
+              onClick={handleSubmit}
+              className="flex-1 bg-green-600 px-4 py-2 rounded-lg font-bold hover:opacity-90 transition-opacity"
+            >
+              Confirm
+            </button>
+            <button
+              onClick={() => setShowInput(false)}
+              className="flex-1 bg-gray-600 px-4 py-2 rounded-lg font-bold hover:opacity-90 transition-opacity"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default TapCoinApp;
